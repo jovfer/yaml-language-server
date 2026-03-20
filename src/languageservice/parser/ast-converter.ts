@@ -28,7 +28,7 @@ import {
   NumberASTNodeImpl,
   ArrayASTNodeImpl,
   BooleanASTNodeImpl,
-} from './jsonParser07';
+} from './jsonDocument';
 
 type NodeRange = [number, number, number];
 
@@ -143,6 +143,19 @@ function convertScalar(node: Scalar, parent: ASTNode): ASTNode {
       const result = new NumberASTNodeImpl(parent, node, ...toOffsetLength(node.range));
       result.value = node.value;
       result.isInteger = Number.isInteger(result.value);
+      return result;
+    }
+    case 'bigint': {
+      const numberValue = Number(node.value);
+      if (Number.isSafeInteger(numberValue)) {
+        const result = new NumberASTNodeImpl(parent, node, ...toOffsetLength(node.range));
+        result.value = numberValue;
+        result.isInteger = true;
+        return result;
+      }
+
+      const result = new StringASTNodeImpl(parent, node, ...toOffsetLength(node.range));
+      result.value = node.value.toString();
       return result;
     }
     default: {
